@@ -18,8 +18,7 @@ export default function Home() {
     setStatus('generating-script')
     setError(null)
 
-    const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent)
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (isMobile ? 'http://192.168.1.169:8000' : 'http://localhost:8000')
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://tiktok-backend-onpd.onrender.com'
 
     try {
       const response = await fetch(`${baseUrl}/generate-video`, {
@@ -39,8 +38,7 @@ export default function Home() {
 
       const data = await response.json()
       setScript(data.script)
-      const mobileVideoUrl = data.video_url.replace('http://localhost:8000', baseUrl)
-      setVideoUrl(mobileVideoUrl)
+      setVideoUrl(data.video_url)
       setStatus('complete')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

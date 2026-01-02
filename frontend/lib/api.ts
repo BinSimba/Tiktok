@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'https://tiktok-backend-onpd.onrender.com'
 
 export interface GenerateVideoRequest {
   topic: string
