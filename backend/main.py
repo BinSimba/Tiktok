@@ -94,6 +94,9 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
         )
         
     except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        print(f"Error generating video: {error_detail}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/videos/{filename}")
