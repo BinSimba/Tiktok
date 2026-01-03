@@ -1,3 +1,7 @@
+from PIL import Image
+if not hasattr(Image, 'ANTIALIAS'):
+    Image.ANTIALIAS = Image.LANCZOS
+
 from moviepy.editor import VideoFileClip, AudioFileClip, ImageClip, TextClip, CompositeVideoClip
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os
