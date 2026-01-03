@@ -27,8 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OUTPUT_DIR = Path("output")
-OUTPUT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR = Path("/tmp/output")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 class VideoRequest(BaseModel):
     text: str
@@ -69,10 +69,9 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
             script = generate_tiktok_script(request.text)
             print(f"Using AI generated script: {script[:50]}...")
             
-            background_video = Path("assets/backgrounds/default_bg.mp4")
-            if not background_video.exists():
-                background_video = Path("assets/backgrounds/default_bg.jpg")
-            background_path = str(background_video)
+            background_image = OUTPUT_DIR / f"{session_id}_background.jpg"
+            generate_ai_image(script, str(background_image))
+            background_path = str(background_image)
         
         audio_path = OUTPUT_DIR / f"{session_id}_audio.mp3"
         generate_audio(script, str(audio_path))
