@@ -21,33 +21,6 @@ def create_tiktok_video(
         
         if bg_ext in ['.jpg', '.jpeg', '.png', '.webp']:
             video = ImageClip(background_path, duration=audio_duration)
-            
-            w, h = video.size
-            
-            def pan_zoom_effect(get_frame, t):
-                import numpy as np
-                from PIL import Image
-                
-                frame = get_frame(t)
-                
-                zoom_factor = 1 + (t / audio_duration) * 0.3
-                
-                new_w = int(w * zoom_factor)
-                new_h = int(h * zoom_factor)
-                
-                img = Image.fromarray(frame)
-                img = img.resize((new_w, new_h), Image.LANCZOS)
-                
-                progress = t / audio_duration
-                x_offset = int((new_w - w) * (0.5 + 0.3 * progress))
-                y_offset = int((new_h - h) * (0.5 + 0.2 * progress))
-                
-                img = img.crop((x_offset, y_offset, x_offset + w, y_offset + h))
-                return np.array(img)
-            
-            from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
-            frames = [pan_zoom_effect(video.get_frame, t / 30) for t in range(0, int(audio_duration * 30))]
-            video = ImageSequenceClip(frames, fps=30)
         else:
             video = VideoFileClip(background_path)
             
@@ -70,12 +43,10 @@ def create_tiktok_video(
                     line,
                     fontsize=subtitle_size,
                     color=subtitle_color,
-                    font='Arial-Bold',
-                    stroke_color='black',
-                    stroke_width=2,
-                    align='center',
-                    method='label'
-                ).set_position('center').set_start(i * line_duration).set_duration(line_duration)
+                    font='Arial',
+                    method='label',
+                    size=(1000, None)
+                ).set_position('center', 'bottom').set_start(i * line_duration).set_duration(line_duration)
                 subtitles.append(txt_clip)
             except Exception as text_error:
                 print(f"Error creating text clip: {text_error}")
@@ -90,11 +61,11 @@ def create_tiktok_video(
         
         final_video.write_videofile(
             output_path,
-            fps=30,
+            fps=24,
             codec='libx264',
             audio_codec='aac',
-            preset='fast',
-            threads=4
+            preset='ultrafast',
+            threads=2
         )
         
         video.close()
