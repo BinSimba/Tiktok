@@ -3,6 +3,8 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import os
 from pathlib import Path
 
+os.environ['IMAGEIO_FFMPEG_EXE'] = '/usr/local/bin/ffmpeg'
+
 def create_tiktok_video(
     script: str,
     audio_path: str,
@@ -63,20 +65,27 @@ def create_tiktok_video(
         line_duration = audio_duration / len(subtitle_lines)
         
         for i, line in enumerate(subtitle_lines):
-            txt_clip = TextClip(
-                line,
-                fontsize=subtitle_size,
-                color=subtitle_color,
-                font='Arial-Bold',
-                stroke_color='black',
-                stroke_width=2,
-                align='center',
-                method='caption'
-            ).set_position('center').set_start(i * line_duration).set_duration(line_duration)
-            
-            subtitles.append(txt_clip)
+            try:
+                txt_clip = TextClip(
+                    line,
+                    fontsize=subtitle_size,
+                    color=subtitle_color,
+                    font='Arial-Bold',
+                    stroke_color='black',
+                    stroke_width=2,
+                    align='center',
+                    method='label'
+                ).set_position('center').set_start(i * line_duration).set_duration(line_duration)
+                subtitles.append(txt_clip)
+            except Exception as text_error:
+                print(f"Error creating text clip: {text_error}")
+                continue
         
-        final_video = CompositeVideoClip([video] + subtitles)
+        if subtitles:
+            final_video = CompositeVideoClip([video] + subtitles)
+        else:
+            final_video = video
+        
         final_video = final_video.set_audio(audio)
         
         final_video.write_videofile(
