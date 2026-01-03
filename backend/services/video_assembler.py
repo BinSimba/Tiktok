@@ -19,7 +19,7 @@ def create_tiktok_video(
 ) -> str:
     try:
         audio = AudioFileClip(audio_path)
-        audio_duration = audio.duration
+        audio_duration = min(audio.duration, 10)
         
         bg_ext = Path(background_path).suffix.lower()
         
@@ -33,8 +33,8 @@ def create_tiktok_video(
             elif video.duration < audio_duration:
                 video = video.loop(duration=audio_duration)
         
-        video = video.resize(height=1920)
-        video = video.crop(x1=video.size[0]//2 - 540, y1=0, x2=video.size[0]//2 + 540, y2=1920)
+        video = video.resize(height=720)
+        video = video.crop(x1=video.size[0]//2 - 270, y1=0, x2=video.size[0]//2 + 270, y2=720)
         
         subtitle_lines = wrap_text(script, max_chars=20)
         subtitles = []
@@ -65,11 +65,12 @@ def create_tiktok_video(
         
         final_video.write_videofile(
             output_path,
-            fps=24,
+            fps=15,
             codec='libx264',
             audio_codec='aac',
             preset='ultrafast',
-            threads=2
+            threads=1,
+            logger=None
         )
         
         video.close()
