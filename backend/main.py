@@ -21,7 +21,7 @@ app = FastAPI(title="Text-to-TikTok API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://192.168.1.169:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://192.168.1.169:3000", "https://text-to-tiktok-pi.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -86,7 +86,8 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
             output_path=str(video_path)
         )
         
-        video_url = f"http://localhost:8000/videos/{session_id}_video.mp4"
+        backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        video_url = f"{backend_url}/videos/{session_id}_video.mp4"
         
         return VideoResponse(
             script=script,
