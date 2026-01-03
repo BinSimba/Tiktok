@@ -19,6 +19,8 @@ from dotenv import load_dotenv
 
 app = FastAPI(title="Text-to-TikTok API")
 
+print("🚀 Starting Text-to-TikTok API...")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3001", "http://192.168.1.169:3000", "https://text-to-tiktok-pi.vercel.app"],
@@ -27,8 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print("✅ CORS middleware configured")
+
 OUTPUT_DIR = Path("/tmp/output")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+print(f"✅ Output directory created: {OUTPUT_DIR}")
 
 class VideoRequest(BaseModel):
     text: str
@@ -38,55 +44,79 @@ class VideoResponse(BaseModel):
     script: str
     video_url: str
 
+@app.on_event("startup")
+async def startup_event():
+    print("🎉 Text-to-TikTok API is ready!")
+
 @app.get("/")
 async def root():
-    return {"message": "Text-to-TikTok API is running"}
+    return {"message": "Text-to-TikTok API is running", "status": "ok"}
+
+@app.get("/test")
+async def test_endpoint():
+    return {"message": "Test endpoint working", "output_dir": str(OUTPUT_DIR), "dir_exists": OUTPUT_DIR.exists()}
 
 @app.post("/generate-video", response_model=VideoResponse)
 async def generate_video(request: VideoRequest, background_tasks: BackgroundTasks):
     try:
         session_id = str(uuid.uuid4())
         
-        print(f"Request received - is_custom: {request.is_custom}, text: {request.text[:50]}...")
+        print(f"\n{'='*50}")
+        print(f"📥 Request received - is_custom: {request.is_custom}, text: {request.text[:50]}...")
+        print(f"🆔 Session ID: {session_id}")
+        print(f"{'='*50}\n")
         
         load_dotenv()
         pexels_api_key = os.getenv("PEXELS_API_KEY")
+        print(f"🔑 Pexels API Key: {'✅ Set' if pexels_api_key else '❌ Not set'}")
         
         if request.is_custom:
             script = request.text
-            print(f"Using custom script: {script[:50]}...")
+            print(f"\n📝 Using custom script: {script[:50]}...")
             
             background_video = OUTPUT_DIR / f"{session_id}_background.mp4"
+            print(f"🔍 Trying to download Pexels video...")
             success = find_and_download_video(script, str(background_video))
             
             if success:
                 background_path = str(background_video)
+                print(f"✅ Pexels video downloaded: {background_path}")
             else:
+                print(f"⚠️  Pexels video failed, falling back to AI image...")
                 background_image = OUTPUT_DIR / f"{session_id}_background.jpg"
                 generate_ai_image(script, str(background_image))
                 background_path = str(background_image)
+                print(f"✅ AI image generated: {background_path}")
         else:
+            print(f"\n🤖 Generating AI script...")
             script = generate_tiktok_script(request.text)
-            print(f"Using AI generated script: {script[:50]}...")
+            print(f"✅ AI generated script: {script[:50]}...")
             
             background_image = OUTPUT_DIR / f"{session_id}_background.jpg"
+            print(f"🎨 Generating AI image...")
             generate_ai_image(script, str(background_image))
             background_path = str(background_image)
+            print(f"✅ AI image generated: {background_path}")
         
         audio_path = OUTPUT_DIR / f"{session_id}_audio.mp3"
+        print(f"\n🎵 Generating TTS audio...")
         generate_audio(script, str(audio_path))
+        print(f"✅ Audio generated: {audio_path}")
         
         video_path = OUTPUT_DIR / f"{session_id}_video.mp4"
-        
+        print(f"\n🎬 Creating video...")
         create_tiktok_video(
             script=script,
             audio_path=str(audio_path),
             background_path=background_path,
             output_path=str(video_path)
         )
+        print(f"✅ Video created: {video_path}")
         
         backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
         video_url = f"{backend_url}/videos/{session_id}_video.mp4"
+        
+        print(f"\n✅ Video ready: {video_url}\n")
         
         return VideoResponse(
             script=script,
@@ -96,7 +126,7 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
     except Exception as e:
         import traceback
         error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        print(f"Error generating video: {error_detail}")
+        print(f"\n❌ Error generating video: {error_detail}\n")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/videos/{filename}")
