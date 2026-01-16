@@ -270,6 +270,19 @@ async def test_api():
             "traceback": traceback.format_exc()
         }
 
+@app.post("/test-perplexity")
+async def test_perplexity():
+    """Simple endpoint to test Perplexity API"""
+    try:
+        perplexity_service = PerplexityService()
+        print("Testing Perplexity API...")
+        test_prompt = "Test prompt"
+        enhanced = await perplexity_service.enhance_video_prompt(test_prompt, mode="advanced")
+        return {"status": "success", "result": enhanced}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+
 @app.post("/generate-physics-video", response_model=VideoResponse)
 async def generate_physics_video_endpoint(request: PhysicsVideoRequest, background_tasks: BackgroundTasks):
     try:
