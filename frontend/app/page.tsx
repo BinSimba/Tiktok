@@ -16,7 +16,7 @@ export default function Home() {
     setIsProcessing(true)
     setVideoUrl(null)
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const baseUrl = 'https://tiktok-backend-onpd.onrender.com'
 
     try {
       const response = await fetch(`${baseUrl}/generate-advanced-video`, {
@@ -53,7 +53,7 @@ export default function Home() {
     setIsProcessing(true)
     setVideoUrl(null)
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const baseUrl = 'https://tiktok-backend-onpd.onrender.com'
 
     try {
       const response = await fetch(`${baseUrl}/generate-advanced-video`, {
@@ -82,7 +82,7 @@ export default function Home() {
     setIsProcessing(true)
     setVideoUrl(null)
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const baseUrl = 'https://tiktok-backend-onpd.onrender.com'
 
     try {
       const response = await fetch(`${baseUrl}/generate-physics-video`, {
