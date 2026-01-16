@@ -29,9 +29,9 @@ export default function Home() {
           is_custom: true,
           video_type: 'cinematic',
           style: 'cinematic',
-          quality: 'high',
-          camera_movement: 'slow_zoom_in',
-          duration: 10.0
+          quality: 'low',
+          camera_movement: 'static',
+          duration: 5.0
         }),
       })
 

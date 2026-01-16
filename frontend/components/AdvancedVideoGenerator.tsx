@@ -15,9 +15,9 @@ export default function AdvancedVideoGenerator({ onGenerate, isProcessing }: Adv
   const [style, setStyle] = useState('cinematic')
   const [characterType, setCharacterType] = useState('person')
   const [emotion, setEmotion] = useState('neutral')
-  const [quality, setQuality] = useState('balanced')
+  const [quality, setQuality] = useState('low')
   const [cameraMovement, setCameraMovement] = useState('static')
-  const [duration, setDuration] = useState(60.0)
+  const [duration, setDuration] = useState(5.0)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
