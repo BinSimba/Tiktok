@@ -184,28 +184,42 @@ async def generate_advanced_video_endpoint(request: VideoRequest, background_tas
         perplexity_service = PerplexityService()
         
         print(f"\n🎯 Enhancing prompt with Perplexity AI...")
-        enhanced_script = await perplexity_service.enhance_video_prompt(script, mode="advanced")
+        try:
+            enhanced_script = await perplexity_service.enhance_video_prompt(script, mode="advanced")
+            print(f"✅ Prompt enhanced: {enhanced_script[:100]}...")
+        except Exception as e:
+            print(f"⚠️  Perplexity enhancement failed: {e}")
+            enhanced_script = script
         
         audio_path = OUTPUT_DIR / f"{session_id}_audio.mp3"
         print(f"\n🎵 Generating TTS audio...")
-        generate_audio(enhanced_script, str(audio_path))
-        print(f"✅ Audio generated: {audio_path}")
+        try:
+            generate_audio(enhanced_script, str(audio_path))
+            print(f"✅ Audio generated: {audio_path}")
+        except Exception as e:
+            print(f"❌ Audio generation failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Audio generation failed: {str(e)}")
         
         video_path = OUTPUT_DIR / f"{session_id}_video.mp4"
         
         print(f"\n🎬 Generating advanced video...")
-        generate_advanced_video(
-            prompt=enhanced_script,
-            audio_path=str(audio_path),
-            output_path=str(video_path),
-            video_type=request.video_type,
-            style=request.style,
-            character_type=request.character_type,
-            emotion=request.emotion,
-            quality=request.quality,
-            camera_movement=request.camera_movement,
-            duration=request.duration
-        )
+        try:
+            generate_advanced_video(
+                prompt=enhanced_script,
+                audio_path=str(audio_path),
+                output_path=str(video_path),
+                video_type=request.video_type,
+                style=request.style,
+                character_type=request.character_type,
+                emotion=request.emotion,
+                quality=request.quality,
+                camera_movement=request.camera_movement,
+                duration=request.duration
+            )
+            print(f"✅ Video generated: {video_path}")
+        except Exception as e:
+            print(f"❌ Video generation failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Video generation failed: {str(e)}")
         
         backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
         video_url = f"{backend_url}/videos/{session_id}_video.mp4"
@@ -217,11 +231,13 @@ async def generate_advanced_video_endpoint(request: VideoRequest, background_tas
             video_url=video_url
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         error_detail = f"{str(e)}\n{traceback.format_exc()}"
         print(f"\n❌ Error generating advanced video: {error_detail}\n")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get("/videos/{filename}")
 async def get_video(filename: str):
@@ -233,6 +249,25 @@ async def get_video(filename: str):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.post("/test-api")
+async def test_api():
+    try:
+        perplexity_service = PerplexityService()
+        test_prompt = "A beautiful sunset over the ocean"
+        enhanced = await perplexity_service.enhance_video_prompt(test_prompt, mode="advanced")
+        return {
+            "status": "success",
+            "original": test_prompt,
+            "enhanced": enhanced
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 @app.post("/generate-physics-video", response_model=VideoResponse)
 async def generate_physics_video_endpoint(request: PhysicsVideoRequest, background_tasks: BackgroundTasks):
