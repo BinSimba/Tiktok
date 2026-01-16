@@ -31,7 +31,7 @@ print("🚀 Starting Text-to-TikTok API...")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://192.168.1.169:3000", "https://text-to-tiktok-pi.vercel.app", "https://frontend-vbp5t8d7g-mos-projects-88453b97.vercel.app", "https://frontend-seven-pink-30.vercel.app"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
