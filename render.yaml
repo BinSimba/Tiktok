@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: text-to-tiktok-backend
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PERPLEXITY_API_KEY
+        value: ""
+      - key: ZHIPU_API_KEY
+        value: ""
+      - key: REPLICATE_API_TOKEN
+        value: ""
+      - key: PEXELS_API_KEY
+        value: ""
+    numInstances: 1

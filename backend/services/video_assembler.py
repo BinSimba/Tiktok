@@ -21,7 +21,15 @@ def create_tiktok_video(
         audio = AudioFileClip(audio_path)
         audio_duration = min(audio.duration, 10)
         
-        bg_ext = Path(background_path).suffix.lower()
+        bg_path = Path(background_path)
+        print(f"🔍 Background path: {bg_path}")
+        print(f"🔍 File exists: {bg_path.exists()}")
+        print(f"🔍 Is file: {bg_path.is_file()}")
+        
+        if not bg_path.exists():
+            raise FileNotFoundError(f"Background file not found: {background_path}")
+        
+        bg_ext = bg_path.suffix.lower()
         
         if bg_ext in ['.jpg', '.jpeg', '.png', '.webp']:
             video = ImageClip(background_path, duration=audio_duration)
@@ -33,8 +41,13 @@ def create_tiktok_video(
             elif video.duration < audio_duration:
                 video = video.loop(duration=audio_duration)
         
-        video = video.resize(height=720)
-        video = video.crop(x1=video.size[0]//2 - 270, y1=0, x2=video.size[0]//2 + 270, y2=720)
+        target_width = 720
+        target_height = 1280
+        video = video.resize(height=target_height)
+        
+        if video.size[0] > target_width:
+            crop_x = (video.size[0] - target_width) // 2
+            video = video.crop(x1=crop_x, y1=0, x2=crop_x + target_width, y2=target_height)
         
         subtitle_lines = wrap_text(script, max_chars=20)
         subtitles = []

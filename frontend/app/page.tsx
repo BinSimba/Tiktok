@@ -2,33 +2,36 @@
 
 import { useState } from 'react'
 import ScriptGenerator from '@/components/ScriptGenerator'
+import AdvancedVideoGenerator from '@/components/AdvancedVideoGenerator'
+import PhysicsVideoGenerator from '@/components/PhysicsVideoGenerator'
 import VideoPreview from '@/components/VideoPreview'
-import StatusIndicator from '@/components/StatusIndicator'
-import { Wand2, Video, Zap } from 'lucide-react'
-
-type ProcessingStatus = 'idle' | 'generating-script' | 'generating-audio' | 'assembling-video' | 'complete' | 'error'
+import { Zap, Sparkles, Waves } from 'lucide-react'
 
 export default function Home() {
-  const [status, setStatus] = useState<ProcessingStatus>('idle')
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
-  const [script, setScript] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [mode, setMode] = useState<'script' | 'advanced' | 'physics'>('script')
 
-  const handleGenerate = async (text: string, isCustom: boolean) => {
-    setStatus('generating-script')
-    setError(null)
+  const handleScriptGenerate = async (text: string) => {
+    setIsProcessing(true)
+    setVideoUrl(null)
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://tiktok-backend-onpd.onrender.com'
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
     try {
-      const response = await fetch(`${baseUrl}/generate-video`, {
+      const response = await fetch(`${baseUrl}/generate-advanced-video`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
           text,
-          is_custom: isCustom 
+          is_custom: true,
+          video_type: 'cinematic',
+          style: 'cinematic',
+          quality: 'high',
+          camera_movement: 'slow_zoom_in',
+          duration: 10.0
         }),
       })
 
@@ -37,69 +40,135 @@ export default function Home() {
       }
 
       const data = await response.json()
-      setScript(data.script)
       setVideoUrl(data.video_url)
-      setStatus('complete')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      setStatus('error')
+      console.error('Error generating video:', err)
+      alert('Failed to generate video. Please try again.')
+    } finally {
+      setIsProcessing(false)
     }
   }
 
-  const statusSteps = [
-    { key: 'generating-script', label: 'Preparing Script', icon: Wand2 },
-    { key: 'generating-audio', label: 'Creating Voiceover', icon: Zap },
-    { key: 'assembling-video', label: 'Assembling Video', icon: Video },
-  ]
+  const handleAdvancedGenerate = async (params: any) => {
+    setIsProcessing(true)
+    setVideoUrl(null)
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+    try {
+      const response = await fetch(`${baseUrl}/generate-advanced-video`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate advanced video')
+      }
+
+      const data = await response.json()
+      setVideoUrl(data.video_url)
+    } catch (err) {
+      console.error('Error generating advanced video:', err)
+      alert('Failed to generate advanced video. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handlePhysicsGenerate = async (params: any) => {
+    setIsProcessing(true)
+    setVideoUrl(null)
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+    try {
+      const response = await fetch(`${baseUrl}/generate-physics-video`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate physics video')
+      }
+
+      const data = await response.json()
+      setVideoUrl(data.video_url)
+    } catch (err) {
+      console.error('Error generating physics video:', err)
+      alert('Failed to generate physics video. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-6xl">
-      <header className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 mb-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30">
-            <Video className="w-8 h-8 text-primary" />
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="container mx-auto px-6 py-12 max-w-7xl">
+        <div className="mb-8 flex justify-center gap-4">
+          <button
+            onClick={() => setMode('script')}
+            className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all ${
+              mode === 'script'
+                ? 'bg-violet-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+            }`}
+          >
+            <Zap className="w-5 h-5" />
+            Script to Video
+          </button>
+          <button
+            onClick={() => setMode('advanced')}
+            className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all ${
+              mode === 'advanced'
+                ? 'bg-violet-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            Advanced AI
+          </button>
+          <button
+            onClick={() => setMode('physics')}
+            className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all ${
+              mode === 'physics'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+            }`}
+          >
+            <Waves className="w-5 h-5" />
+            Physics
+          </button>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-12">
+          <div className="flex flex-col justify-center">
+            {mode === 'script' ? (
+              <ScriptGenerator 
+                onGenerate={handleScriptGenerate} 
+                isProcessing={isProcessing}
+              />
+            ) : mode === 'advanced' ? (
+              <AdvancedVideoGenerator
+                onGenerate={handleAdvancedGenerate}
+                isProcessing={isProcessing}
+              />
+            ) : (
+              <PhysicsVideoGenerator
+                onGenerate={handlePhysicsGenerate}
+                isGenerating={isProcessing}
+              />
+            )}
           </div>
-          <h1 className="text-5xl font-bold neon-text">
-            Text-to-TikTok
-          </h1>
-        </div>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Transform your text into viral TikTok videos. Write your own script or let AI generate one from your topic.
-        </p>
-      </header>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <ScriptGenerator 
-            onGenerate={handleGenerate} 
-            isProcessing={status !== 'idle' && status !== 'complete' && status !== 'error'}
-          />
-          
-          {status !== 'idle' && (
-            <StatusIndicator 
-              status={status} 
-              steps={statusSteps}
-              error={error}
-            />
-          )}
-          
-          {script && (
-            <div className="glass rounded-2xl p-6 space-y-4">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Wand2 className="w-5 h-5 text-secondary" />
-                Script
-              </h3>
-              <div className="bg-surface/50 rounded-xl p-4 border border-white/10">
-                <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-                  {script}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <VideoPreview videoUrl={videoUrl} />
+          <div className="flex flex-col justify-center">
+            <VideoPreview videoUrl={videoUrl} />
+          </div>
         </div>
       </div>
     </main>

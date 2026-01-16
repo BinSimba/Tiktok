@@ -3,6 +3,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://your-backend-url.onrender.com"
+    "NEXT_PUBLIC_API_URL": "https://text-to-tiktok-backend.onrender.com"
   }
 }
