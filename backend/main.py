@@ -252,6 +252,7 @@ async def health_check():
 
 @app.post("/test-api")
 async def test_api():
+    """Test endpoint for debugging Perplexity API integration"""
     try:
         perplexity_service = PerplexityService()
         test_prompt = "A beautiful sunset over the ocean"
